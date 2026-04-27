@@ -23,7 +23,7 @@
             justify-content: center;
             align-items: flex-start;
             gap: 20px;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Permite que a tabela desça no celular */
         }
 
         .container {
@@ -35,6 +35,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
+        /* ESTILOS DA BARRA LATERAL (TABELA) */
         .sidebar {
             width: 100%;
             max-width: 250px;
@@ -163,18 +164,6 @@
             border: 1px solid #cbd5e1;
         }
 
-        /* Estilo para o container do logo no PDF do cliente */
-        #clientLogoHeader {
-            text-align: center;
-            margin-bottom: 15px;
-            display: none; /* Escondido por padrão, JavaScript mostra */
-        }
-
-        #clientLogoHeader img {
-            max-height: 80px; /* Limita a altura do logo para não quebrar o layout */
-            width: auto;
-        }
-
         .footer {
             text-align: center;
             font-size: 0.8rem;
@@ -184,12 +173,15 @@
 
         #view-client-print { display: none; }
 
+        /* ----- REGRAS DE IMPRESSÃO ----- */
         @media print {
             body { background-color: white; padding: 0; display: block; }
             .container { box-shadow: none; max-width: 100%; padding: 0; }
             
+            /* ESCONDE ELEMENTOS EXTRAS NO PDF */
             .sidebar, .btn-group, .footer, #upload-section, h1, .form-group { display: none !important; }
 
+            /* MODO CLIENTE */
             body.mode-client #view-admin-results { display: none !important; }
             body.mode-client #view-client-print { 
                 display: block !important; 
@@ -198,6 +190,7 @@
                 border-radius: 10px;
             }
 
+            /* MODO INTERNO */
             body.mode-internal #view-admin-results { 
                 display: block !important; 
                 border: 1px solid #64748b;
@@ -269,11 +262,6 @@
             <input type="number" id="margemLucro" value="100">
         </div>
 
-        <div id="logo-upload-section" class="form-group">
-            <label>Subir Logo da Empresa (Cabeçalho)</label>
-            <input type="file" id="uploadLogo" accept="image/*">
-        </div>
-
         <div id="upload-section" class="form-group">
             <label>Fotos da Peça</label>
             <input type="file" id="uploadImagens" accept="image/*" multiple>
@@ -291,11 +279,6 @@
     </div>
 
     <div id="view-client-print">
-        
-        <div id="clientLogoHeader">
-            <img id="clientLogoPreview" src="" alt="Empresa Logo">
-        </div>
-
         <h1 style="color: #2563eb; margin-bottom: 2px;">VR MIL 3D</h1>
         <p style="text-align:center; font-size: 0.9rem; color: #64748b; margin-top: 0;">V. R. - Mil Flexiveis CNPJ 09.943.186/0001-97</p>
         <p style="text-align:center; font-style: italic; margin-top: 15px;">Orçamento de Manufatura 3D</p>
@@ -315,7 +298,7 @@
         <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
 
-    <div class="footer">VR MIL 3D - v1.5</div>
+    <div class="footer">VR MIL 3D - v1.4</div>
 </div>
 
 <div class="sidebar">
@@ -348,24 +331,6 @@
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(i => i.addEventListener('input', calcular));
 
-    // Lógica para upload do Logo da Empresa
-    document.getElementById('uploadLogo').addEventListener('change', function(e) {
-        const logoPreview = document.getElementById('clientLogoPreview');
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                logoPreview.src = event.target.result;
-                document.getElementById('clientLogoHeader').style.display = 'block'; // Mostra o cabeçalho se houver imagem
-            };
-            reader.readAsDataURL(file);
-        } else {
-            logoPreview.src = "";
-            document.getElementById('clientLogoHeader').style.display = 'none'; // Esconde se vazio
-        }
-    });
-
-    // Lógica para fotos da peça (já existente)
     document.getElementById('uploadImagens').addEventListener('change', function(e) {
         const preview = document.getElementById('previewImagens');
         preview.innerHTML = '';
