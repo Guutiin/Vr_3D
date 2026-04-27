@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VR MIL 3D</title>
+    <title>VR MIL 3D - Gestor de Orçamentos</title>
     <style>
         :root {
             --primary-color: #2563eb;
+            --secondary-color: #64748b;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #1e293b;
+            --success-color: #059669;
         }
 
         body {
@@ -58,11 +60,6 @@
             font-size: 1rem;
         }
 
-        input[type="file"] {
-            padding: 5px;
-            background: #f1f5f9;
-        }
-
         .result-box {
             margin-top: 25px;
             padding: 15px;
@@ -86,32 +83,29 @@
             padding-top: 10px;
         }
 
-        .btn-print {
+        /* Botões */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
             width: 100%;
             padding: 12px;
-            background-color: var(--primary-color);
-            color: white;
             border: none;
             border-radius: 6px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.2s;
+            transition: opacity 0.2s;
         }
 
-        .btn-print:hover {
-            background-color: #1d4ed8;
-        }
+        .btn-client { background-color: var(--primary-color); color: white; }
+        .btn-internal { background-color: var(--secondary-color); color: white; }
+        .btn:hover { opacity: 0.9; }
 
-        .footer {
-            text-align: center;
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 20px;
-        }
-
-        /* Estilos para a galeria de imagens */
         .image-preview {
             display: flex;
             flex-wrap: wrap;
@@ -122,75 +116,54 @@
 
         .image-preview img {
             max-width: 100%;
-            height: auto;
-            max-height: 200px;
+            max-height: 180px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
-            object-fit: contain;
         }
 
-        /* Visão exclusiva para o cliente (escondida na tela normal) */
-        .client-view {
-            display: none;
+        .footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 20px;
         }
 
-        /* ----- REGRA MÁGICA DE IMPRESSÃO ----- */
+        /* Visões de Impressão */
+        #view-client-print { display: none; }
+
+        /* ----- REGRAS DE IMPRESSÃO ----- */
         @media print {
-            body {
-                background-color: white;
-                padding: 0;
-            }
-            .container {
-                box-shadow: none;
-                max-width: 100%;
-                padding: 10px;
-            }
-            
-            /* Esconde toda a parte de edição e cálculos internos na hora do PDF */
-            .admin-view, .btn-print, .footer, .result-box {
-                display: none !important;
+            body { background-color: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; }
+            .btn-group, .footer, #upload-section, h1, .form-group { display: none !important; }
+
+            /* Se for impressão de CLIENTE */
+            body.mode-client #view-admin-results { display: none !important; }
+            body.mode-client #view-client-print { 
+                display: block !important; 
+                border: 2px solid #2563eb;
+                padding: 20px;
+                border-radius: 10px;
             }
 
-            /* Mostra a visão formatada e limpa para o cliente */
-            .client-view {
-                display: block;
-                font-size: 1.2rem;
+            /* Se for impressão INTERNA */
+            body.mode-internal #view-admin-results { 
+                display: block !important; 
+                border: 1px solid #64748b;
             }
-
-            .client-view h2 {
-                color: var(--primary-color);
-                border-bottom: 2px solid var(--primary-color);
-                padding-bottom: 10px;
-                margin-bottom: 20px;
-            }
-
-            .client-view p {
-                margin: 10px 0;
-                line-height: 1.5;
-            }
-
-            .client-view .destaque-total {
-                font-size: 1.5rem;
-                font-weight: bold;
-                color: var(--primary-color);
-                background-color: #eff6ff;
-                padding: 15px;
-                border-radius: 8px;
-                margin-top: 20px;
-                text-align: center;
-            }
+            body.mode-internal .form-group { display: block !important; opacity: 0.7; }
+            body.mode-internal input, body.mode-internal select { border: none; background: none; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
-    <div class="admin-view">
-        <h1>Orçamento Interno</h1>
+    <div id="admin-inputs">
+        <h1>VR MIL 3D</h1>
 
         <div class="form-group">
-            <label>Selecione a Impressora</label>
+            <label>Impressora</label>
             <select id="impressora">
                 <option value="1.0">Impressora A (1.0 kW/h)</option>
                 <option value="0.8">Impressora B (0.8 kW/h)</option>
@@ -198,30 +171,33 @@
         </div>
 
         <div class="form-group">
-            <label>Filamento / Resina (Nome)</label>
-            <input type="text" id="materialNome" placeholder="Ex: PLA Silk, Resina ABS Like">
-        </div>
-        <div class="form-group">
-            <label>Preço do KG do Material (R$)</label>
-            <input type="number" id="materialPreco" placeholder="0.00" step="0.01">
+            <label>Material (Filamento/Resina)</label>
+            <input type="text" id="materialNome" placeholder="Ex: PLA Silk Azul">
         </div>
 
         <div class="form-group">
-            <label>Peso da Peça (gramas)</label>
-            <input type="number" id="pesoPeca" placeholder="Ex: 150">
+            <label>Preço do KG (R$)</label>
+            <input type="number" id="materialPreco" step="0.01">
         </div>
+
+        <div class="form-group">
+            <label>Peso da Peça (g)</label>
+            <input type="number" id="pesoPeca">
+        </div>
+
         <div class="form-group">
             <label>Tempo de Impressão (Horas)</label>
-            <input type="number" id="tempoImpressao" placeholder="Ex: 5">
+            <input type="number" id="tempoImpressao">
         </div>
 
         <div class="form-group">
-            <label>Custo Energia Local (R$ por kWh)</label>
-            <input type="number" id="custoEnergiaKwh" value="0.85" step="0.01">
+            <label>Custo Energia (R$/kWh)</label>
+            <input type="number" id="custoEnergiaKwh" value="0.85">
         </div>
+
         <div class="form-group">
-            <label>Custos Variáveis (Cola, Álcool, Lixa - R$)</label>
-            <input type="number" id="custosVariaveis" placeholder="0.00" step="0.01">
+            <label>Custos Variáveis (R$)</label>
+            <input type="number" id="custosVariaveis" placeholder="0.00">
         </div>
 
         <div class="form-group">
@@ -229,113 +205,101 @@
             <input type="number" id="margemLucro" value="100">
         </div>
 
-        <div class="form-group">
-            <label>Anexar Imagens do Modelo</label>
+        <div id="upload-section" class="form-group">
+            <label>Fotos da Peça</label>
             <input type="file" id="uploadImagens" accept="image/*" multiple>
-        </div>
-
-        <div class="result-box">
-            <div class="result-item">
-                <span>Custo Material:</span>
-                <span id="resMaterial">R$ 0,00</span>
-            </div>
-            <div class="result-item">
-                <span>Custo Energia:</span>
-                <span id="resEnergia">R$ 0,00</span>
-            </div>
-            <div class="result-item">
-                <span>Variáveis:</span>
-                <span id="resVariaveis">R$ 0,00</span>
-            </div>
-            <div class="result-item total">
-                <span>Preço Sugerido:</span>
-                <span id="resTotal">R$ 0,00</span>
-            </div>
         </div>
     </div>
 
-    <div class="client-view">
-        <h1 style="text-align: center; color: #2563eb; margin-bottom: 5px;">VR MIL 3D</h1>
-        <h2>Orçamento de Impressão</h2>
-        
-        <p><strong>Material a ser utilizado:</strong> <span id="clientMaterial">Não informado</span></p>
-        <p><strong>Tempo estimado de produção:</strong> <span id="clientTempo">0</span> horas</p>
-        
-        <div class="destaque-total">
-            Valor Total: <span id="clientTotal">R$ 0,00</span>
+    <div id="view-admin-results" class="result-box">
+        <h3 style="text-align:center; margin-top:0;">Relatório Interno</h3>
+        <div class="result-item"><span>Custo Material:</span> <span id="resMaterial">R$ 0,00</span></div>
+        <div class="result-item"><span>Custo Energia:</span> <span id="resEnergia">R$ 0,00</span></div>
+        <div class="result-item"><span>Variáveis:</span> <span id="resVariaveis">R$ 0,00</span></div>
+        <div class="result-item total"><span>Preço Final:</span> <span id="resTotal">R$ 0,00</span></div>
+    </div>
+
+    <div id="view-client-print">
+        <h1 style="color: #2563eb; margin-bottom: 5px;">VR MIL 3D</h1>
+        <p style="text-align:center; font-style: italic;">Orçamento de Serviço de Impressão 3D</p>
+        <hr>
+        <p><strong>Modelo:</strong> <span id="clientMaterial">---</span></p>
+        <p><strong>Prazo de Produção:</strong> <span id="clientTempo">0</span> horas de impressão</p>
+        <div style="background: #eff6ff; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+            <span style="font-size: 1.1rem; font-weight: bold;">Valor Total do Investimento:</span><br>
+            <span id="clientTotal" style="font-size: 2rem; color: #2563eb; font-weight: bold;">R$ 0,00</span>
         </div>
     </div>
 
     <div id="previewImagens" class="image-preview"></div>
 
-    <button class="btn-print" onclick="window.print()">🖨️ Gerar PDF para o Cliente</button>
-
-    <div class="footer">
-        Ferramenta de Orçamento Interno v1.0
+    <div class="btn-group">
+        <button class="btn btn-client" onclick="gerarPDF('cliente')">🖨️ Gerar PDF p/ Cliente</button>
+        <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
+
+    <div class="footer">VR MIL 3D - v1.1</div>
 </div>
 
 <script>
     const inputs = document.querySelectorAll('input, select');
-    
-    // Escuta mudanças nos inputs de texto e número
-    inputs.forEach(input => {
-        if(input.type !== 'file') {
-            input.addEventListener('input', calcular);
-        }
-    });
+    inputs.forEach(i => i.addEventListener('input', calcular));
 
-    // Lida com o upload de imagens
     document.getElementById('uploadImagens').addEventListener('change', function(e) {
         const preview = document.getElementById('previewImagens');
-        preview.innerHTML = ''; // Limpa as imagens antigas ao carregar novas
-        
-        const files = e.target.files;
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+        preview.innerHTML = '';
+        Array.from(e.target.files).forEach(file => {
             const reader = new FileReader();
-            
-            reader.onload = function(event) {
+            reader.onload = (event) => {
                 const img = document.createElement('img');
                 img.src = event.target.result;
                 preview.appendChild(img);
-            }
+            };
             reader.readAsDataURL(file);
-        }
+        });
     });
 
     function calcular() {
-        // Valores de entrada numéricos
-        const consumoImpressora = parseFloat(document.getElementById('impressora').value);
+        const consumo = parseFloat(document.getElementById('impressora').value);
         const precoKg = parseFloat(document.getElementById('materialPreco').value) || 0;
         const peso = parseFloat(document.getElementById('pesoPeca').value) || 0;
         const tempo = parseFloat(document.getElementById('tempoImpressao').value) || 0;
-        const valorKwh = parseFloat(document.getElementById('custoEnergiaKwh').value) || 0;
-        const variaveis = parseFloat(document.getElementById('custosVariaveis').value) || 0;
+        const kwh = parseFloat(document.getElementById('custoEnergiaKwh').value) || 0;
+        const vars = parseFloat(document.getElementById('custosVariaveis').value) || 0;
         const margem = parseFloat(document.getElementById('margemLucro').value) || 0;
-        
-        // Valores de texto
-        const nomeMaterial = document.getElementById('materialNome').value || "Não informado";
 
-        // Cálculos
-        const custoMaterial = (peso / 1000) * precoKg;
-        const custoEnergia = tempo * consumoImpressora * valorKwh;
-        const custoBase = custoMaterial + custoEnergia + variaveis;
-        const precoFinal = custoBase + (custoBase * (margem / 100));
+        const cMaterial = (peso / 1000) * precoKg;
+        const cEnergia = tempo * consumo * kwh;
+        const cBase = cMaterial + cEnergia + vars;
+        const pFinal = cBase + (cBase * (margem / 100));
 
-        // Formatando o valor em Reais
-        const precoFormatado = precoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const formatado = pFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-        // Exibição Interna (Visão do Amigo)
-        document.getElementById('resMaterial').innerText = `R$ ${custoMaterial.toFixed(2)}`;
-        document.getElementById('resEnergia').innerText = `R$ ${custoEnergia.toFixed(2)}`;
-        document.getElementById('resVariaveis').innerText = `R$ ${variaveis.toFixed(2)}`;
-        document.getElementById('resTotal').innerText = precoFormatado;
+        // Atualiza tela interna
+        document.getElementById('resMaterial').innerText = `R$ ${cMaterial.toFixed(2)}`;
+        document.getElementById('resEnergia').innerText = `R$ ${cEnergia.toFixed(2)}`;
+        document.getElementById('resVariaveis').innerText = `R$ ${vars.toFixed(2)}`;
+        document.getElementById('resTotal').innerText = formatado;
 
-        // Exibição Externa (Visão do Cliente no PDF)
-        document.getElementById('clientMaterial').innerText = nomeMaterial;
+        // Atualiza visão cliente
+        document.getElementById('clientMaterial').innerText = document.getElementById('materialNome').value || "Não informado";
         document.getElementById('clientTempo').innerText = tempo;
-        document.getElementById('clientTotal').innerText = precoFormatado;
+        document.getElementById('clientTotal').innerText = formatado;
+    }
+
+    function gerarPDF(modo) {
+        // Remove classes antigas
+        document.body.classList.remove('mode-client', 'mode-internal');
+        
+        // Adiciona a classe do modo escolhido
+        if(modo === 'cliente') {
+            document.body.classList.add('mode-client');
+        } else {
+            document.body.classList.add('mode-internal');
+        }
+
+        // Chama a impressão
+        window.print();
     }
 </script>
 
