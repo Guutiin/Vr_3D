@@ -23,7 +23,7 @@
             justify-content: center;
             align-items: flex-start;
             gap: 20px;
-            flex-wrap: wrap; /* Permite que a tabela desça no celular */
+            flex-wrap: wrap;
         }
 
         .container {
@@ -35,7 +35,6 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        /* ESTILOS DA BARRA LATERAL (TABELA) */
         .sidebar {
             width: 100%;
             max-width: 250px;
@@ -164,6 +163,17 @@
             border: 1px solid #cbd5e1;
         }
 
+        /* Estilo fixo para o logo do cliente */
+        #clientLogoHeader {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        #clientLogoHeader img {
+            max-height: 100px;
+            width: auto;
+        }
+
         .footer {
             text-align: center;
             font-size: 0.8rem;
@@ -173,15 +183,12 @@
 
         #view-client-print { display: none; }
 
-        /* ----- REGRAS DE IMPRESSÃO ----- */
         @media print {
             body { background-color: white; padding: 0; display: block; }
             .container { box-shadow: none; max-width: 100%; padding: 0; }
             
-            /* ESCONDE ELEMENTOS EXTRAS NO PDF */
             .sidebar, .btn-group, .footer, #upload-section, h1, .form-group { display: none !important; }
 
-            /* MODO CLIENTE */
             body.mode-client #view-admin-results { display: none !important; }
             body.mode-client #view-client-print { 
                 display: block !important; 
@@ -190,7 +197,6 @@
                 border-radius: 10px;
             }
 
-            /* MODO INTERNO */
             body.mode-internal #view-admin-results { 
                 display: block !important; 
                 border: 1px solid #64748b;
@@ -279,9 +285,14 @@
     </div>
 
     <div id="view-client-print">
+        
+        <div id="clientLogoHeader">
+            <img src="logo.png" alt="VR MIL 3D Logo">
+        </div>
+
         <h1 style="color: #2563eb; margin-bottom: 2px;">VR MIL 3D</h1>
-        <p style="text-align:center; font-size: 0.9rem; color: #64748b; margin-top: 0;">V. R. - Mil Flexiveis CNPJ 09.943.186/0001-97</p>
-        <p style="text-align:center; font-style: italic; margin-top: 15px;">Orçamento de Manufatura 3D</p>
+        <p style="text-align:center; font-size: 0.9rem; color: #64748b; margin-top: 0;">CNPJ: VRMIL 09943186000197</p>
+        <p style="text-align:center; font-style: italic; margin-top: 15px;">Orçamento de Serviço de Impressão 3D</p>
         <hr>
         <p><strong>Modelo:</strong> <span id="clientMaterial">---</span></p>
         <p><strong>Prazo para Entrega:</strong> <span id="clientPrazo">A combinar</span></p>
@@ -298,7 +309,7 @@
         <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
 
-    <div class="footer">VR MIL 3D - v1.4</div>
+    <div class="footer">VR MIL 3D - v1.6</div>
 </div>
 
 <div class="sidebar">
@@ -331,6 +342,7 @@
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(i => i.addEventListener('input', calcular));
 
+    // Lógica para fotos da peça (mantida)
     document.getElementById('uploadImagens').addEventListener('change', function(e) {
         const preview = document.getElementById('previewImagens');
         preview.innerHTML = '';
