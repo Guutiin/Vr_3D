@@ -163,7 +163,6 @@
             border: 1px solid #cbd5e1;
         }
 
-        /* Estilo fixo para o logo do cliente */
         #clientLogoHeader {
             text-align: center;
             margin-bottom: 15px;
@@ -211,6 +210,21 @@
 <div class="container">
     <div id="admin-inputs">
         <h1>VR MIL 3D</h1>
+
+        <div class="form-group">
+            <label>Nome da Peça</label>
+            <input type="text" id="nomePeca" placeholder="Ex: Suporte de Headset">
+        </div>
+
+        <div class="form-group">
+            <label>Código da Peça</label>
+            <input type="text" id="codigoPeca" placeholder="Ex: SUP-001">
+        </div>
+
+        <div class="form-group">
+            <label>Dimensões (CxLxA)</label>
+            <input type="text" id="dimensoesPeca" placeholder="Ex: 15cm x 10cm x 5cm">
+        </div>
 
         <div class="form-group">
             <label>Impressora</label>
@@ -276,6 +290,9 @@
 
     <div id="view-admin-results" class="result-box">
         <h3 style="text-align:center; margin-top:0;">Relatório Interno</h3>
+        <p style="text-align:center; color: #64748b; font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">
+            <span id="resNomePeca">---</span> | <span id="resCodigoPeca">---</span>
+        </p>
         <div class="result-item"><span>Custo Material:</span> <span id="resMaterial">R$ 0,00</span></div>
         <div class="result-item"><span>Desgaste do Bico:</span> <span id="resBico">R$ 0,00</span></div>
         <div class="result-item"><span>Custo Energia:</span> <span id="resEnergia">R$ 0,00</span></div>
@@ -294,8 +311,12 @@
         <p style="text-align:center; font-size: 0.9rem; color: #64748b; margin-top: 0;">V. R. - Mil Flexiveis CNPJ 09.943.186/0001-97</p>
         <p style="text-align:center; font-style: italic; margin-top: 15px;">Orçamento de Manufatura 3D</p>
         <hr>
-        <p><strong>Modelo:</strong> <span id="clientMaterial">---</span></p>
+        <p><strong>Peça:</strong> <span id="clientNomePeca">Não informado</span></p>
+        <p><strong>Código:</strong> <span id="clientCodigoPeca">---</span></p>
+        <p><strong>Dimensões:</strong> <span id="clientDimensoes">Não informado</span></p>
+        <p><strong>Material:</strong> <span id="clientMaterial">Não informado</span></p>
         <p><strong>Prazo para Entrega:</strong> <span id="clientPrazo">A combinar</span></p>
+        
         <div style="background: #eff6ff; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
             <span style="font-size: 1.1rem; font-weight: bold;">Valor Total do Investimento:</span><br>
             <span id="clientTotal" style="font-size: 2rem; color: #2563eb; font-weight: bold;">R$ 0,00</span>
@@ -309,7 +330,7 @@
         <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
 
-    <div class="footer">VR MIL 3D - v1.6</div>
+    <div class="footer">VR MIL 3D - v1.7</div>
 </div>
 
 <div class="sidebar">
@@ -342,7 +363,6 @@
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(i => i.addEventListener('input', calcular));
 
-    // Lógica para fotos da peça (mantida)
     document.getElementById('uploadImagens').addEventListener('change', function(e) {
         const preview = document.getElementById('previewImagens');
         preview.innerHTML = '';
@@ -358,6 +378,14 @@
     });
 
     function calcular() {
+        // Textos
+        const nomeDaPeca = document.getElementById('nomePeca').value || "Não informado";
+        const codigoDaPeca = document.getElementById('codigoPeca').value || "S/N";
+        const dimensoesDaPeca = document.getElementById('dimensoesPeca').value || "Não informado";
+        const nomeMaterial = document.getElementById('materialNome').value || "Não informado";
+        const prazo = document.getElementById('prazoEntrega').value || "A combinar";
+
+        // Números
         const consumo = parseFloat(document.getElementById('impressora').value);
         const desgasteBico = parseFloat(document.getElementById('tipoBico').value);
         const precoKg = parseFloat(document.getElementById('materialPreco').value) || 0;
@@ -366,8 +394,8 @@
         const kwh = parseFloat(document.getElementById('custoEnergiaKwh').value) || 0;
         const vars = parseFloat(document.getElementById('custosVariaveis').value) || 0;
         const margem = parseFloat(document.getElementById('margemLucro').value) || 0;
-        const prazo = document.getElementById('prazoEntrega').value || "A combinar";
 
+        // Cálculos
         const cMaterial = (peso / 1000) * precoKg;
         const cBico = (peso / 1000) * desgasteBico;
         const cEnergia = tempo * consumo * kwh;
@@ -377,6 +405,8 @@
         const formatado = pFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
         // Relatório Interno
+        document.getElementById('resNomePeca').innerText = nomeDaPeca;
+        document.getElementById('resCodigoPeca').innerText = codigoDaPeca;
         document.getElementById('resMaterial').innerText = `R$ ${cMaterial.toFixed(2)}`;
         document.getElementById('resBico').innerText = `R$ ${cBico.toFixed(2)}`;
         document.getElementById('resEnergia').innerText = `R$ ${cEnergia.toFixed(2)}`;
@@ -385,7 +415,10 @@
         document.getElementById('resTotal').innerText = formatado;
 
         // Visão do Cliente
-        document.getElementById('clientMaterial').innerText = document.getElementById('materialNome').value || "Não informado";
+        document.getElementById('clientNomePeca').innerText = nomeDaPeca;
+        document.getElementById('clientCodigoPeca').innerText = codigoDaPeca;
+        document.getElementById('clientDimensoes').innerText = dimensoesDaPeca;
+        document.getElementById('clientMaterial').innerText = nomeMaterial;
         document.getElementById('clientPrazo').innerText = prazo;
         document.getElementById('clientTotal').innerText = formatado;
     }
