@@ -171,6 +171,14 @@
         </div>
 
         <div class="form-group">
+            <label>Tipo de Bico (Desgaste por KG)</label>
+            <select id="tipoBico">
+                <option value="5.00">Bico Simples (Custo R$ 5,00/kg)</option>
+                <option value="26.33">Bico Caro (Custo R$ 26,33/kg)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label>Material (Filamento/Resina)</label>
             <input type="text" id="materialNome" placeholder="Ex: PLA Silk Azul">
         </div>
@@ -214,6 +222,7 @@
     <div id="view-admin-results" class="result-box">
         <h3 style="text-align:center; margin-top:0;">Relatório Interno</h3>
         <div class="result-item"><span>Custo Material:</span> <span id="resMaterial">R$ 0,00</span></div>
+        <div class="result-item"><span>Desgaste do Bico:</span> <span id="resBico">R$ 0,00</span></div>
         <div class="result-item"><span>Custo Energia:</span> <span id="resEnergia">R$ 0,00</span></div>
         <div class="result-item"><span>Variáveis:</span> <span id="resVariaveis">R$ 0,00</span></div>
         <div class="result-item total"><span>Preço Final:</span> <span id="resTotal">R$ 0,00</span></div>
@@ -238,7 +247,7 @@
         <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
 
-    <div class="footer">VR MIL 3D - v1.1</div>
+    <div class="footer">VR MIL 3D - v1.2</div>
 </div>
 
 <script>
@@ -261,6 +270,7 @@
 
     function calcular() {
         const consumo = parseFloat(document.getElementById('impressora').value);
+        const desgasteBico = parseFloat(document.getElementById('tipoBico').value);
         const precoKg = parseFloat(document.getElementById('materialPreco').value) || 0;
         const peso = parseFloat(document.getElementById('pesoPeca').value) || 0;
         const tempo = parseFloat(document.getElementById('tempoImpressao').value) || 0;
@@ -269,14 +279,16 @@
         const margem = parseFloat(document.getElementById('margemLucro').value) || 0;
 
         const cMaterial = (peso / 1000) * precoKg;
+        const cBico = (peso / 1000) * desgasteBico;
         const cEnergia = tempo * consumo * kwh;
-        const cBase = cMaterial + cEnergia + vars;
+        const cBase = cMaterial + cBico + cEnergia + vars;
         const pFinal = cBase + (cBase * (margem / 100));
 
         const formatado = pFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
         // Atualiza tela interna
         document.getElementById('resMaterial').innerText = `R$ ${cMaterial.toFixed(2)}`;
+        document.getElementById('resBico').innerText = `R$ ${cBico.toFixed(2)}`;
         document.getElementById('resEnergia').innerText = `R$ ${cEnergia.toFixed(2)}`;
         document.getElementById('resVariaveis').innerText = `R$ ${vars.toFixed(2)}`;
         document.getElementById('resTotal').innerText = formatado;
@@ -288,17 +300,14 @@
     }
 
     function gerarPDF(modo) {
-        // Remove classes antigas
         document.body.classList.remove('mode-client', 'mode-internal');
         
-        // Adiciona a classe do modo escolhido
         if(modo === 'cliente') {
             document.body.classList.add('mode-client');
         } else {
             document.body.classList.add('mode-internal');
         }
 
-        // Chama a impressão
         window.print();
     }
 </script>
