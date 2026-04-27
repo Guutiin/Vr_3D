@@ -21,6 +21,9 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap; /* Permite que a tabela desça no celular */
         }
 
         .container {
@@ -30,6 +33,48 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ESTILOS DA BARRA LATERAL (TABELA) */
+        .sidebar {
+            width: 100%;
+            max-width: 250px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin-top: 0;
+            text-align: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .sidebar table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .sidebar th, .sidebar td {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .sidebar th {
+            text-align: left;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .sidebar td:last-child {
+            text-align: right;
+            font-weight: bold;
+            color: #334155;
         }
 
         h1 {
@@ -128,11 +173,15 @@
 
         #view-client-print { display: none; }
 
+        /* ----- REGRAS DE IMPRESSÃO ----- */
         @media print {
-            body { background-color: white; padding: 0; }
-            .container { box-shadow: none; max-width: 100%; }
-            .btn-group, .footer, #upload-section, h1, .form-group { display: none !important; }
+            body { background-color: white; padding: 0; display: block; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+            
+            /* ESCONDE ELEMENTOS EXTRAS NO PDF */
+            .sidebar, .btn-group, .footer, #upload-section, h1, .form-group { display: none !important; }
 
+            /* MODO CLIENTE */
             body.mode-client #view-admin-results { display: none !important; }
             body.mode-client #view-client-print { 
                 display: block !important; 
@@ -141,6 +190,7 @@
                 border-radius: 10px;
             }
 
+            /* MODO INTERNO */
             body.mode-internal #view-admin-results { 
                 display: block !important; 
                 border: 1px solid #64748b;
@@ -229,8 +279,9 @@
     </div>
 
     <div id="view-client-print">
-        <h1 style="color: #2563eb; margin-bottom: 5px;">VR MIL 3D</h1>
-        <p style="text-align:center; font-style: italic;">Orçamento de Manufatura 3D</p>
+        <h1 style="color: #2563eb; margin-bottom: 2px;">VR MIL 3D</h1>
+        <p style="text-align:center; font-size: 0.9rem; color: #64748b; margin-top: 0;">CNPJ: VRMIL 09943186000197</p>
+        <p style="text-align:center; font-style: italic; margin-top: 15px;">Orçamento de Serviço de Impressão 3D</p>
         <hr>
         <p><strong>Modelo:</strong> <span id="clientMaterial">---</span></p>
         <p><strong>Prazo para Entrega:</strong> <span id="clientPrazo">A combinar</span></p>
@@ -247,7 +298,33 @@
         <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
 
-    <div class="footer">VR MIL 3D - v1.3</div>
+    <div class="footer">VR MIL 3D - v1.4</div>
+</div>
+
+<div class="sidebar">
+    <h2>Tabela de Referência</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Custo (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Álcool</td>
+                <td>1,60</td>
+            </tr>
+            <tr>
+                <td>Papel</td>
+                <td>0,40</td>
+            </tr>
+            <tr>
+                <td>Cola</td>
+                <td>0,80</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 <script>
