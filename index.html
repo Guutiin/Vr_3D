@@ -11,7 +11,6 @@
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #1e293b;
-            --success-color: #059669;
         }
 
         body {
@@ -83,7 +82,6 @@
             padding-top: 10px;
         }
 
-        /* Botões */
         .btn-group {
             display: flex;
             flex-direction: column;
@@ -128,16 +126,13 @@
             margin-top: 20px;
         }
 
-        /* Visões de Impressão */
         #view-client-print { display: none; }
 
-        /* ----- REGRAS DE IMPRESSÃO ----- */
         @media print {
             body { background-color: white; padding: 0; }
             .container { box-shadow: none; max-width: 100%; }
             .btn-group, .footer, #upload-section, h1, .form-group { display: none !important; }
 
-            /* Se for impressão de CLIENTE */
             body.mode-client #view-admin-results { display: none !important; }
             body.mode-client #view-client-print { 
                 display: block !important; 
@@ -146,7 +141,6 @@
                 border-radius: 10px;
             }
 
-            /* Se for impressão INTERNA */
             body.mode-internal #view-admin-results { 
                 display: block !important; 
                 border: 1px solid #64748b;
@@ -171,7 +165,7 @@
         </div>
 
         <div class="form-group">
-            <label>Tipo de Bico (Desgaste por KG)</label>
+            <label>Tipo de Bico</label>
             <select id="tipoBico">
                 <option value="5.00">Bico Simples (Custo R$ 5,00/kg)</option>
                 <option value="26.33">Bico Caro (Custo R$ 26,33/kg)</option>
@@ -184,18 +178,23 @@
         </div>
 
         <div class="form-group">
-            <label>Preço do KG (R$)</label>
-            <input type="number" id="materialPreco" step="0.01">
-        </div>
-
-        <div class="form-group">
             <label>Peso da Peça (g)</label>
             <input type="number" id="pesoPeca">
         </div>
 
         <div class="form-group">
+            <label>Preço do KG do Material (R$)</label>
+            <input type="number" id="materialPreco" step="0.01">
+        </div>
+
+        <div class="form-group">
             <label>Tempo de Impressão (Horas)</label>
             <input type="number" id="tempoImpressao">
+        </div>
+
+        <div class="form-group">
+            <label>Prazo de Entrega (Para o Cliente)</label>
+            <input type="text" id="prazoEntrega" placeholder="Ex: 3 dias úteis">
         </div>
 
         <div class="form-group">
@@ -225,15 +224,16 @@
         <div class="result-item"><span>Desgaste do Bico:</span> <span id="resBico">R$ 0,00</span></div>
         <div class="result-item"><span>Custo Energia:</span> <span id="resEnergia">R$ 0,00</span></div>
         <div class="result-item"><span>Variáveis:</span> <span id="resVariaveis">R$ 0,00</span></div>
+        <div class="result-item"><span>Tempo Máquina:</span> <span id="resTempoInterno">0h</span></div>
         <div class="result-item total"><span>Preço Final:</span> <span id="resTotal">R$ 0,00</span></div>
     </div>
 
     <div id="view-client-print">
         <h1 style="color: #2563eb; margin-bottom: 5px;">VR MIL 3D</h1>
-        <p style="text-align:center; font-style: italic;">Orçamento de Serviço de Impressão 3D</p>
+        <p style="text-align:center; font-style: italic;">Orçamento de Manufatura 3D</p>
         <hr>
         <p><strong>Modelo:</strong> <span id="clientMaterial">---</span></p>
-        <p><strong>Prazo de Produção:</strong> <span id="clientTempo">0</span> horas de impressão</p>
+        <p><strong>Prazo para Entrega:</strong> <span id="clientPrazo">A combinar</span></p>
         <div style="background: #eff6ff; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
             <span style="font-size: 1.1rem; font-weight: bold;">Valor Total do Investimento:</span><br>
             <span id="clientTotal" style="font-size: 2rem; color: #2563eb; font-weight: bold;">R$ 0,00</span>
@@ -247,7 +247,7 @@
         <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
 
-    <div class="footer">VR MIL 3D - v1.2</div>
+    <div class="footer">VR MIL 3D - v1.3</div>
 </div>
 
 <script>
@@ -277,6 +277,7 @@
         const kwh = parseFloat(document.getElementById('custoEnergiaKwh').value) || 0;
         const vars = parseFloat(document.getElementById('custosVariaveis').value) || 0;
         const margem = parseFloat(document.getElementById('margemLucro').value) || 0;
+        const prazo = document.getElementById('prazoEntrega').value || "A combinar";
 
         const cMaterial = (peso / 1000) * precoKg;
         const cBico = (peso / 1000) * desgasteBico;
@@ -286,28 +287,27 @@
 
         const formatado = pFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-        // Atualiza tela interna
+        // Relatório Interno
         document.getElementById('resMaterial').innerText = `R$ ${cMaterial.toFixed(2)}`;
         document.getElementById('resBico').innerText = `R$ ${cBico.toFixed(2)}`;
         document.getElementById('resEnergia').innerText = `R$ ${cEnergia.toFixed(2)}`;
         document.getElementById('resVariaveis').innerText = `R$ ${vars.toFixed(2)}`;
+        document.getElementById('resTempoInterno').innerText = `${tempo}h`;
         document.getElementById('resTotal').innerText = formatado;
 
-        // Atualiza visão cliente
+        // Visão do Cliente
         document.getElementById('clientMaterial').innerText = document.getElementById('materialNome').value || "Não informado";
-        document.getElementById('clientTempo').innerText = tempo;
+        document.getElementById('clientPrazo').innerText = prazo;
         document.getElementById('clientTotal').innerText = formatado;
     }
 
     function gerarPDF(modo) {
         document.body.classList.remove('mode-client', 'mode-internal');
-        
         if(modo === 'cliente') {
             document.body.classList.add('mode-client');
         } else {
             document.body.classList.add('mode-internal');
         }
-
         window.print();
     }
 </script>
