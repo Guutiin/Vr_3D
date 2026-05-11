@@ -94,13 +94,19 @@
             font-size: 0.9rem;
         }
 
-        input, select {
+        /* Adicionado o textarea aqui para manter o mesmo estilo */
+        input, select, textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        textarea {
+            resize: vertical;
         }
 
         .result-box {
@@ -201,7 +207,7 @@
                 border: 1px solid #64748b;
             }
             body.mode-internal .form-group { display: block !important; opacity: 0.7; }
-            body.mode-internal input, body.mode-internal select { border: none; background: none; }
+            body.mode-internal input, body.mode-internal select, body.mode-internal textarea { border: none; background: none; }
         }
     </style>
 </head>
@@ -219,6 +225,12 @@
         <div class="form-group">
             <label>Código da Peça</label>
             <input type="text" id="codigoPeca" placeholder="Ex: SUP-001">
+        </div>
+
+        <!-- NOVO CAMPO: Descrição -->
+        <div class="form-group">
+            <label>Descrição / Observações (Aparece para o cliente)</label>
+            <textarea id="descricaoPeca" rows="3" placeholder="Ex: Peça com acabamento premium, alta resistência mecânica e cor sólida."></textarea>
         </div>
 
         <div class="form-group">
@@ -243,7 +255,7 @@
         </div>
 
         <div class="form-group">
-            <label>Material (Filamento/Resina)</label>
+            <label>Material (Filamento/Resina) - Uso Interno</label>
             <input type="text" id="materialNome" placeholder="Ex: PLA Silk Azul">
         </div>
 
@@ -288,6 +300,7 @@
         </div>
     </div>
 
+    <!-- RESULTADOS INTERNOS -->
     <div id="view-admin-results" class="result-box">
         <h3 style="text-align:center; margin-top:0;">Relatório Interno</h3>
         <p style="text-align:center; color: #64748b; font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">
@@ -301,6 +314,7 @@
         <div class="result-item total"><span>Preço Final:</span> <span id="resTotal">R$ 0,00</span></div>
     </div>
 
+    <!-- VISÃO DO CLIENTE (SÓ NO PDF) -->
     <div id="view-client-print">
         
         <div id="clientLogoHeader">
@@ -314,7 +328,8 @@
         <p><strong>Peça:</strong> <span id="clientNomePeca">Não informado</span></p>
         <p><strong>Código:</strong> <span id="clientCodigoPeca">---</span></p>
         <p><strong>Dimensões:</strong> <span id="clientDimensoes">Não informado</span></p>
-        <p><strong>Material:</strong> <span id="clientMaterial">Não informado</span></p>
+        <p><strong>Descrição:</strong> <span id="clientDescricao">Não informado</span></p>
+        <!-- O campo Material foi removido daqui a pedido -->
         <p><strong>Prazo para Entrega:</strong> <span id="clientPrazo">A combinar</span></p>
         
         <div style="background: #eff6ff; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
@@ -330,7 +345,7 @@
         <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
 
-    <div class="footer">VR MIL 3D - v1.7</div>
+    <div class="footer">VR MIL 3D - v1.8</div>
 </div>
 
 <div class="sidebar">
@@ -360,7 +375,8 @@
 </div>
 
 <script>
-    const inputs = document.querySelectorAll('input, select');
+    // Adicionado textarea ao seletor para que o cálculo e atualização funcionem ao digitar
+    const inputs = document.querySelectorAll('input, select, textarea');
     inputs.forEach(i => i.addEventListener('input', calcular));
 
     document.getElementById('uploadImagens').addEventListener('change', function(e) {
@@ -382,7 +398,7 @@
         const nomeDaPeca = document.getElementById('nomePeca').value || "Não informado";
         const codigoDaPeca = document.getElementById('codigoPeca').value || "S/N";
         const dimensoesDaPeca = document.getElementById('dimensoesPeca').value || "Não informado";
-        const nomeMaterial = document.getElementById('materialNome').value || "Não informado";
+        const descricaoDaPeca = document.getElementById('descricaoPeca').value || "Não informado";
         const prazo = document.getElementById('prazoEntrega').value || "A combinar";
 
         // Números
@@ -418,7 +434,7 @@
         document.getElementById('clientNomePeca').innerText = nomeDaPeca;
         document.getElementById('clientCodigoPeca').innerText = codigoDaPeca;
         document.getElementById('clientDimensoes').innerText = dimensoesDaPeca;
-        document.getElementById('clientMaterial').innerText = nomeMaterial;
+        document.getElementById('clientDescricao').innerText = descricaoDaPeca;
         document.getElementById('clientPrazo').innerText = prazo;
         document.getElementById('clientTotal').innerText = formatado;
     }
