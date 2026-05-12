@@ -238,6 +238,12 @@
             <input type="text" id="dimensoesPeca" placeholder="Ex: 15cm x 10cm x 5cm">
         </div>
 
+        <!-- NOVO CAMPO: Quantidade adicionada aqui -->
+        <div class="form-group">
+            <label>Quantidade de Peças</label>
+            <input type="number" id="quantidadePeca" value="1" min="1">
+        </div>
+
         <div class="form-group">
             <label>Impressora</label>
             <select id="impressora">
@@ -260,7 +266,7 @@
         </div>
 
         <div class="form-group">
-            <label>Peso da Peça (g)</label>
+            <label>Peso da Peça (g) (Unitário)</label>
             <input type="number" id="pesoPeca">
         </div>
 
@@ -270,7 +276,7 @@
         </div>
 
         <div class="form-group">
-            <label>Tempo de Impressão (Horas)</label>
+            <label>Tempo de Impressão (Horas) (Unitário)</label>
             <input type="number" id="tempoImpressao">
         </div>
 
@@ -285,7 +291,7 @@
         </div>
 
         <div class="form-group">
-            <label>Custos Variáveis (R$)</label>
+            <label>Custos Variáveis (R$) (Unitário)</label>
             <input type="number" id="custosVariaveis" placeholder="0.00">
         </div>
 
@@ -302,9 +308,9 @@
 
     <!-- RESULTADOS INTERNOS -->
     <div id="view-admin-results" class="result-box">
-        <h3 style="text-align:center; margin-top:0;">Relatório Interno</h3>
+        <h3 style="text-align:center; margin-top:0;">Relatório Interno (Total do Pedido)</h3>
         <p style="text-align:center; color: #64748b; font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">
-            <span id="resNomePeca">---</span> | <span id="resCodigoPeca">---</span>
+            <span id="resNomePeca">---</span> | <span id="resCodigoPeca">---</span> | Qtd: <span id="resQuantidadeInterna">1</span>
         </p>
         <div class="result-item"><span>Custo Material:</span> <span id="resMaterial">R$ 0,00</span></div>
         <div class="result-item"><span>Desgaste do Bico:</span> <span id="resBico">R$ 0,00</span></div>
@@ -329,6 +335,8 @@
         <p><strong>Código:</strong> <span id="clientCodigoPeca">---</span></p>
         <p><strong>Dimensões:</strong> <span id="clientDimensoes">Não informado</span></p>
         <p><strong>Descrição:</strong> <span id="clientDescricao">Não informado</span></p>
+        <!-- NOVO CAMPO: Quantidade exibida para o cliente -->
+        <p><strong>Quantidade:</strong> <span id="clientQuantidade">1</span> unidade(s)</p>
         <!-- O campo Material foi removido daqui a pedido -->
         <p><strong>Prazo para Entrega:</strong> <span id="clientPrazo">A combinar</span></p>
         
@@ -345,7 +353,7 @@
         <button class="btn btn-internal" onclick="gerarPDF('interno')">📂 Salvar Relatório Interno</button>
     </div>
 
-    <div class="footer">VR MIL 3D - v1.8</div>
+    <div class="footer">VR MIL 3D - v1.9</div>
 </div>
 
 <div class="sidebar">
@@ -402,6 +410,7 @@
         const prazo = document.getElementById('prazoEntrega').value || "A combinar";
 
         // Números
+        const qtd = parseInt(document.getElementById('quantidadePeca').value) || 1; // Nova variável de quantidade
         const consumo = parseFloat(document.getElementById('impressora').value);
         const desgasteBico = parseFloat(document.getElementById('tipoBico').value);
         const precoKg = parseFloat(document.getElementById('materialPreco').value) || 0;
@@ -411,23 +420,32 @@
         const vars = parseFloat(document.getElementById('custosVariaveis').value) || 0;
         const margem = parseFloat(document.getElementById('margemLucro').value) || 0;
 
-        // Cálculos
+        // Cálculos Unitários
         const cMaterial = (peso / 1000) * precoKg;
         const cBico = (peso / 1000) * desgasteBico;
         const cEnergia = tempo * consumo * kwh;
         const cBase = cMaterial + cBico + cEnergia + vars;
         const pFinal = cBase + (cBase * (margem / 100));
 
-        const formatado = pFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        // Multiplicando os resultados pela Quantidade para o relatório total
+        const cMaterialTotal = cMaterial * qtd;
+        const cBicoTotal = cBico * qtd;
+        const cEnergiaTotal = cEnergia * qtd;
+        const varsTotal = vars * qtd;
+        const tempoTotal = tempo * qtd;
+        const pFinalTotal = pFinal * qtd;
 
-        // Relatório Interno
+        const formatado = pFinalTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        // Relatório Interno (Agora reflete o total multiplicado pela quantidade)
         document.getElementById('resNomePeca').innerText = nomeDaPeca;
         document.getElementById('resCodigoPeca').innerText = codigoDaPeca;
-        document.getElementById('resMaterial').innerText = `R$ ${cMaterial.toFixed(2)}`;
-        document.getElementById('resBico').innerText = `R$ ${cBico.toFixed(2)}`;
-        document.getElementById('resEnergia').innerText = `R$ ${cEnergia.toFixed(2)}`;
-        document.getElementById('resVariaveis').innerText = `R$ ${vars.toFixed(2)}`;
-        document.getElementById('resTempoInterno').innerText = `${tempo}h`;
+        document.getElementById('resQuantidadeInterna').innerText = qtd;
+        document.getElementById('resMaterial').innerText = `R$ ${cMaterialTotal.toFixed(2)}`;
+        document.getElementById('resBico').innerText = `R$ ${cBicoTotal.toFixed(2)}`;
+        document.getElementById('resEnergia').innerText = `R$ ${cEnergiaTotal.toFixed(2)}`;
+        document.getElementById('resVariaveis').innerText = `R$ ${varsTotal.toFixed(2)}`;
+        document.getElementById('resTempoInterno').innerText = `${tempoTotal}h`;
         document.getElementById('resTotal').innerText = formatado;
 
         // Visão do Cliente
@@ -435,6 +453,7 @@
         document.getElementById('clientCodigoPeca').innerText = codigoDaPeca;
         document.getElementById('clientDimensoes').innerText = dimensoesDaPeca;
         document.getElementById('clientDescricao').innerText = descricaoDaPeca;
+        document.getElementById('clientQuantidade').innerText = qtd; // Atualiza a quantidade no PDF do cliente
         document.getElementById('clientPrazo').innerText = prazo;
         document.getElementById('clientTotal').innerText = formatado;
     }
